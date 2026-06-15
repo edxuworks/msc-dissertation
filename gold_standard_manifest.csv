@@ -1,0 +1,44 @@
+idx,bucket,doc,product,gwp_a1a3,reason
+0,CLEAN,EPD-IES-0003985:002,Woven vinyl flooring delivered as tile,4.39,ok
+1,CLEAN,SCS-EPD-08784,Era 140 & 170,2.639,VERIFY: low fill but spot-check shows GWP A1-A3=2.639 present — likely legit cradle-to-gate; confirm vs PDF
+2,CLEAN,SCS-EPD-08783,Craggan Flax,34.41,ok
+3,CLEAN,000438,Macpherson Durable Matt Paint,1.96E-01,ok
+4,CLEAN,000433,Crown Trade Fastflow Quick Dry Primer ,2.17E-01,ok
+5,CLEAN,1.1.00527.2024,Dulux Trade Vinyl Matt,1.61 E-01,ok
+6,CLEAN,1.1.00216.2021,Sikkens Exterior Solventbased Woodstai,2.59E-1,ok
+7,CLEAN,1.1.00381.2022,Dulux Trade Weathershield Exterior Fle,2.73 E-1,ok
+8,CLEAN,1.1.00376.2022,Dulux Trade Quick Dry Satinwood,4.76 E-1,ok
+9,QUARANTINE,000393,Altro Wood adhesive-free / Altro Canta,,CONTAMINATED  BRE/Altro 000393 — leaked prompt-sentence keys + 'C2 ' malformed key
+10,QUARANTINE,000255,Altro Classic 25,,CONTAMINATED  BRE/Altro 000255 — leaked prompt-sentence keys
+11,QUARANTINE,000338,Altro Fortis Titanium PVCu Walls Sheet,,CONTAMINATED  BRE/Altro 000338 (Fortis Titanium) — leaked prompt-sentence keys
+12,QUARANTINE,000601,Altro Screed,,CONTAMINATED  BRE/Altro 000601 — leaked keys; HAS partial A1/A2/A3 -> candidate for later re-extraction
+13,QUARANTINE,000338,Altro Whiterock Chameleon,,CONTAMINATED  BRE/Altro 000338 (Whiterock Chameleon) — leaked prompt-sentence keys
+14,QUARANTINE,000263,Altro Wood Safety Comfort,,CONTAMINATED  BRE/Altro 000263 — leaked prompt-sentence keys
+15,QUARANTINE,000252,Altro adhesive free products,,CONTAMINATED  BRE/Altro 000252 — leaked prompt-sentence keys
+16,QUARANTINE,000260,"Altro Debolon R300.1, Altro Operetta, ",,CONTAMINATED  BRE/Altro 000260 — leaked prompt-sentence keys
+17,CLEAN,1.1.00639.2024,DuoPlank® 20 mm Wood Flooring,-1.12E+00,ok
+18,CLEAN,EPD-P 05.11.2025,OAK/PINE 15 MM LACQUERED,-4.87E+00,ok
+19,CLEAN,417/2023,"3-LAYER WOODEN FLOORBOARD PUREPLANK, V",-2.32E+00,VERIFY: filename '417/2023.pdf' mismatch — confirm correct document
+20,CLEAN,4791540199.103.1,CQUEST™ BIO MODULAR CARPET TILE,2.76E+00,VERIFY: UL duplicate primary (sibling 23 quarantined) — confirm this pass is correct
+21,CLEAN,4791540199.102.1,CQUEST™ BIO MODULAR CARPET TILE WITH S,6.66E+00,ok
+22,CLEAN,4791540199.101.1,SOUND CHOICE+ MODULAR RESILIENT FLOORI,6.81E+00,ok
+23,QUARANTINE,4791540199.103.1,CQUEST™ BIO MODULAR CARPET TILE,2.76E+00,DUPLICATE     redundant 2nd extraction pass of record 20 (UL 4791540199.103.1)
+24,QUARANTINE,4791540199.102.1,CQUEST™ BIO MODULAR CARPET TILE WITH S,6.66E+00,DUPLICATE     redundant 2nd extraction pass of record 21 (UL 4791540199.102.1)
+25,QUARANTINE,4791540199.101.1,SOUND CHOICE+ MODULAR RESILIENT FLOORI,6.81E+00,DUPLICATE     redundant 2nd extraction pass of record 22 (UL 4791540199.101.1)
+26,CLEAN,SCS-EPD-06707,Knight Tile Luxury Vinyl Flooring,N/A,VERIFY: SCS-06707 multi-product — confirm product/value assignment vs PDF
+27,CLEAN,SCS-EPD-06707,Van Gogh Luxury Vinyl,11.281,VERIFY: SCS-06707 Van Gogh — dedup survivor of identical triplicate; confirm product assignment
+28,QUARANTINE,SCS-EPD-06707,Van Gogh Luxury Vinyl,11.281,"DUPLICATE     exact copy of record 27 (Van Gogh, SCS-EPD-06707)"
+29,QUARANTINE,SCS-EPD-06707,Van Gogh Luxury Vinyl,11.281,"DUPLICATE     exact copy of record 27 (Van Gogh, SCS-EPD-06707)"
+30,CLEAN,SCS-EPD-10447,KORLOK/VAN GOGH RIGID CORE (6.5MM),12.8,ok
+31,CLEAN,SCS-EPD-06708,Karndean Looselay Vinyl Flooring,14.567,VERIFY: SCS confidence sample GWP A1-A3=14.567 — confirm
+32,CLEAN,EPD-IGI-20170146-IBG2-EN,Vinyl Based Wallcoverings on Non-Woven,4.47E-1,ok
+33,CLEAN,EPD 20223-202209-20220929135748-DE-System,SCHÜCO FWS 50 B X H: 3050 MM X 3050 MM,952.88,VERIFY: German EPD GWP A1-A3=952.88 — confirm functional unit / units
+34,CLEAN,4789796942.142.1,Residential Broadloom Carpet with Poly,9.32E+00,ok
+35,CLEAN,4789796942.144.1,Residential Broadloom Carpet with Nylo,1.37E+01,ok
+36,QUARANTINE,EPD10557,B65W1301 Acrylic Polyurethane,N/A,EMPTY         Sherwin-Williams/NSF EPD10557 — 0% LCA fill (likely ISO 21930 stage notation)
+37,QUARANTINE,EPD10558,Duraplate 301W N02301W10 Primer,N/A,NEAR-EMPTY    Sherwin-Williams/NSF EPD10558 — 10% fill
+38,QUARANTINE,EPD10567,M770GLOSS - UD Water-based Finish,2.62,NEAR-EMPTY    Sherwin-Williams/NSF EPD10567 — 7% fill
+39,CLEAN,ReTHiNK-65667,Capri Drapery Fabric,5.194E-1,VERIFY: small values (5.194E-1) — confirm scientific-notation parsing
+40,CLEAN,ReTHiNK-80743,Colour Connect Upholstery Fabric,4.44E-1,ok
+41,CLEAN,ReTHiNK-105143,OLEFIN WALLCOVERING 370 G/M2,1.42E+0,ok
+42,CLEAN,000623,Aruba Mineral Ceiling Tile,5.26E+00,VERIFY: 000623 122p Docling-timeout doc — confirm extraction succeeded

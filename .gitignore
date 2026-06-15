@@ -1,0 +1,25 @@
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+.env
+data/cache/
+*.sqlite
+*.pt
+*.bin
+*.safetensors
+figures/*.png
+figures/*.pdf
+.ipynb_checkpoints/
+
+# Duplicate sync artifact (same files as top-level EPDs/)
+EPDs/MSc Project/
+
+# Windows WSL file transfer metadata
+*:Zone.Identifier
+
+# Firstplanit internal documents (NDA)
+Firstplanit/
+
+# Pip typo artifacts
+=*/

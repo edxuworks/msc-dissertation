@@ -1,0 +1,53 @@
+# ── PDF preprocessing ──────────────────────────────────────────────────────────
+docling>=2.0.0              # IBM Docling: layout-aware PDF→text, integrates TableFormer
+pymupdf>=1.24.0             # PyMuPDF (fitz): fast native PDF text extraction + scan detection
+pytesseract>=0.3.10         # Tesseract OCR wrapper (fallback for scanned PDFs)
+paddlepaddle>=2.6.0         # PaddlePaddle (optional: PaddleOCR alternative to Tesseract)
+paddleocr>=2.7.0            # PaddleOCR
+
+# ── Local inference & guided decoding ──────────────────────────────────────────
+vllm>=0.6.0                 # vLLM: high-throughput local inference, includes XGrammar backend
+outlines>=0.1.0             # Outlines: alternative structured generation / guided decoding
+transformers>=4.45.0        # HuggingFace Transformers: model loading, tokenizers
+accelerate>=0.34.0          # HuggingFace Accelerate: multi-GPU / device placement
+sentencepiece>=0.2.0        # Tokenizer dependency for many SLMs
+
+# ── Fine-tuning (QLoRA / LoRA) ─────────────────────────────────────────────────
+peft>=0.13.0                # HuggingFace PEFT: LoRA, QLoRA adapters
+bitsandbytes>=0.44.0        # 4-bit / 8-bit quantisation (enables QLoRA on consumer GPU)
+trl>=0.11.0                 # HuggingFace TRL: SFTTrainer for supervised fine-tuning
+datasets>=3.0.0             # HuggingFace Datasets: dataset loading and processing
+
+# ── Cloud LLM API clients (baselines A & B) ────────────────────────────────────
+anthropic>=0.36.0           # Anthropic Claude API (Baseline B option)
+openai>=1.50.0              # OpenAI GPT API (Baseline B option)
+google-generativeai>=0.8.0  # Google Gemini API (Baseline A: Gemini 2.5 Flash)
+
+# ── Data handling ──────────────────────────────────────────────────────────────
+pandas>=2.2.0               # DataFrames for results / gold standard management
+numpy>=2.0.0                # Numerical ops
+scipy>=1.14.0               # scipy.optimize for cascade threshold optimisation (FrugalGPT pattern)
+jsonschema>=4.23.0          # JSON schema validation for structured output checking
+
+# ── Evaluation & metrics ───────────────────────────────────────────────────────
+scikit-learn>=1.5.0         # Precision, recall, F1, calibration metrics
+evaluate>=0.4.0             # HuggingFace Evaluate: standardised metric computation
+
+# ── Confidence calibration & uncertainty ───────────────────────────────────────
+# (semantic entropy, self-consistency — implemented from scratch using transformers)
+# No extra package needed: use model logits directly via transformers / vLLM
+
+# ── Energy / cost tracking ─────────────────────────────────────────────────────
+codecarbon>=2.7.0           # Energy consumption tracking (kWh per run)
+
+# ── Visualisation ──────────────────────────────────────────────────────────────
+matplotlib>=3.9.0           # Plots (Pareto frontier visualisations)
+seaborn>=0.13.0             # Statistical visualisations
+
+# ── Utilities ──────────────────────────────────────────────────────────────────
+tqdm>=4.66.0                # Progress bars
+rich>=13.8.0                # Pretty terminal output / logging
+python-dotenv>=1.0.0        # .env file for API keys
+pydantic>=2.9.0             # Data validation / schema models for EPD output
+loguru>=0.7.0               # Structured logging
+typer>=0.12.0               # CLI entrypoints for pipeline scripts
