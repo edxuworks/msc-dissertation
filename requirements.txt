@@ -32,6 +32,7 @@ jsonschema>=4.23.0          # JSON schema validation for structured output check
 # ── Evaluation & metrics ───────────────────────────────────────────────────────
 scikit-learn>=1.5.0         # Precision, recall, F1, calibration metrics
 evaluate>=0.4.0             # HuggingFace Evaluate: standardised metric computation
+deepdiff>=6.7.0             # Deep dict comparison; Hungarian matching for multi-product EPDs
 
 # ── Confidence calibration & uncertainty ───────────────────────────────────────
 # (semantic entropy, self-consistency — implemented from scratch using transformers)

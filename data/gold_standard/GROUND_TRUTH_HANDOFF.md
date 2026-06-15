@@ -8,7 +8,7 @@ Read this at the start of any session that touches evaluation or the gold standa
 
 ## What is the working ground truth?
 
-**`data/gold_standard/epd_gold_clean.json`** — 27 records.
+**`data/gold_standard/epd_gold_clean.json`** — 18 records.
 
 Derived from `data/gold_standard/epd_gold_normalised.json` (43 records) by:
 1. Removing 16 records that are contaminated, duplicated, or empty (see below)
@@ -48,7 +48,6 @@ Unit
 
 **Additional audit fields added by `create_gold_standard.py`:**
 - `_orig_index` — original index in the 43-record normalised set (0-based)
-- `_verify` — present and `true` on 9 records that need PDF hand-verification (see below)
 
 ---
 
@@ -74,15 +73,17 @@ Root cause: these EPDs conform to ISO 21930, not EN 15804. ISO 21930 uses Stage 
 
 ---
 
-## VERIFY-flagged records (Edward's task)
+## UNVERIFIED records (moved to quarantine 2026-06-15)
 
-9 clean records were flagged `"_verify": true` because their extracted values looked unusual or couldn't be confirmed from the audit alone. These are in the working set but should be cross-checked against the source PDF before using for fine-tuning.
+9 records that were previously VERIFY-flagged in the clean set have been moved to `epd_gold_quarantine.json` with `_quarantine_reason = "UNVERIFIED"`. Decision: use only the 18 confident records for evaluation and fine-tuning; promote these once hand-verified.
 
-| orig_idx | File | Flag reason |
+To promote a record: remove its index from `QUARANTINE_REASONS` and add it to `CLEAN_INDICES` in `scripts/create_gold_standard.py`, then re-run the script.
+
+| orig_idx | File | Why unverified |
 |---|---|---|
 | 1 | EPD International record | Single EPD-INTL schema record; field names were remapped — check LCA values match PDF |
 | 19 | UL Interface (20 oz) | Suspicious numeric values in B-stage fields |
-| 20 | UL Interface (24 oz) | Same — UL extraction non-determinism suspected |
+| 20 | UL Interface (24 oz) | UL extraction non-determinism suspected |
 | 26 | SCS Knight Tile LVF | Multi-product EPD column split — verify correct column was assigned |
 | 27 | SCS Van Gogh LVF | Same multi-product EPD — verify D-module values |
 | 31 | MRPI / NEN record | Check unit consistency for GWP indicators |
@@ -124,7 +125,7 @@ Root cause: these EPDs conform to ISO 21930, not EN 15804. ISO 21930 uses Stage 
    schema validity, unit-outlier check, scientific-notation sanity  
    *(confirm design with Edward before implementing)*
 
-3. **Baseline C** — zero-shot Phi-4-Mini on the 27-record clean working set  
+3. **Baseline C** — zero-shot Phi-4-Mini on the 18-record clean working set  
    *(requires local model setup — defer until eval harness complete)*
 
 ---

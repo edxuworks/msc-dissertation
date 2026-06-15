@@ -1,0 +1,9 @@
+{
+  "filename": "000623.pdf",
+  "success": false,
+  "text": "",
+  "tables": [],
+  "page_count": 0,
+  "processing_time_s": 124.1,
+  "error": "Pipeline StandardPdfPipeline failed"
+}

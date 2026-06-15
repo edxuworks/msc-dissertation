@@ -1,0 +1,9 @@
+{
+  "filename": "SCS-EPD-06707.pdf",
+  "success": false,
+  "text": "",
+  "tables": [],
+  "page_count": 0,
+  "processing_time_s": 123.8,
+  "error": "Pipeline StandardPdfPipeline failed"
+}

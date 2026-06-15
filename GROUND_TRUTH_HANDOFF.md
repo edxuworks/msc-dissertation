@@ -7,14 +7,13 @@
 
 ## TL;DR
 The 43-record normalised gold standard has been audited and split:
-- `epd_gold_clean.json` — 27 records. **Use this as the working ground truth.**
-- `epd_gold_quarantine.json` — 16 records cut (contaminated / empty / duplicate). Each record
+- `epd_gold_clean.json` — 18 records. **Use this as the working ground truth.**
+- `epd_gold_quarantine.json` — 25 records cut (9 UNVERIFIED + 8 contaminated + 5 duplicate + 3 empty). Each record
   carries a `_quarantine_reason` and `_orig_index` field.
 - `gold_standard_manifest.csv` — all 43 records: bucket + reason + GWP A1-A3 sanity value.
 
-These 27 are a DEVELOPMENT set, not final truth. Edward will hand-verify every record from
-scratch against the PDFs later. Do not treat any value as gold yet — especially the 9
-VERIFY-flagged records listed below.
+These 18 are a DEVELOPMENT set, not final truth. The 9 UNVERIFIED records have been moved
+to quarantine (decision 2026-06-15) — they can be promoted back once hand-verified against PDFs.
 
 Normalisation was checked and is loss-free: 0 non-trivial values were dropped converting
 `epd_extraction.json` -> `epd_gold_normalised.json` (pure key-renaming). Clean file is derived
@@ -50,27 +49,20 @@ as JSON keys (e.g. the entire PENRT instruction string) plus a malformed `"C2 "`
 
 ---
 
-## VERIFY-flagged records INSIDE the clean set (9)
-Structurally clean and kept, but the spot-check / audit wants these confirmed against the PDF
-before they count as final truth. Prioritise these in the hand-verification pass:
+## UNVERIFIED records (moved to quarantine 2026-06-15)
+These 9 records were previously VERIFY-flagged in the clean set. Decision 2026-06-15: move them
+to quarantine (UNVERIFIED) so only the 18 confident records are used for eval/fine-tuning.
+They can be promoted once hand-verified — see `data/gold_standard/GROUND_TRUTH_HANDOFF.md` for
+instructions and the promotion workflow.
   - idx  1  SCS-EPD-08784          Era 140 & 170
-      -> low fill but spot-check shows GWP A1-A3=2.639 present — likely legit cradle-to-gate; confirm vs PDF
-  - idx 19  417/2023               3-LAYER WOODEN FLOORBOARD PUREPLANK, V
-      -> filename '417/2023.pdf' mismatch — confirm correct document
+  - idx 19  417/2023               3-LAYER WOODEN FLOORBOARD PUREPLANK
   - idx 20  4791540199.103.1       CQUEST™ BIO MODULAR CARPET TILE
-      -> UL duplicate primary (sibling 23 quarantined) — confirm this pass is correct
   - idx 26  SCS-EPD-06707          Knight Tile Luxury Vinyl Flooring
-      -> SCS-06707 multi-product — confirm product/value assignment vs PDF
   - idx 27  SCS-EPD-06707          Van Gogh Luxury Vinyl
-      -> SCS-06707 Van Gogh — dedup survivor of identical triplicate; confirm product assignment
   - idx 31  SCS-EPD-06708          Karndean Looselay Vinyl Flooring
-      -> SCS confidence sample GWP A1-A3=14.567 — confirm
-  - idx 33  EPD 20223-202209-20220929135748-DE-System SCHÜCO FWS 50 B X H: 3050 MM X 3050 MM
-      -> German EPD GWP A1-A3=952.88 — confirm functional unit / units
+  - idx 33  EPD 20223-...-DE-System  SCHÜCO FWS 50 B X H (German EPD)
   - idx 39  ReTHiNK-65667          Capri Drapery Fabric
-      -> small values (5.194E-1) — confirm scientific-notation parsing
   - idx 42  000623                 Aruba Mineral Ceiling Tile
-      -> 000623 122p Docling-timeout doc — confirm extraction succeeded
 
 ---
 
@@ -102,7 +94,7 @@ Each record = flat metadata + 12 nested LCA indicator objects.
 ## Log updates to make
 PROJECT_LOG.md and CLAUDE.md still list schema-normalisation as the next task. It is DONE. Record:
 - normalisation complete (loss-free), gold-standard audit complete
-- working set = 27 clean / 16 quarantined; full hand-verification pending
+- working set = 18 clean / 25 quarantined; 9 UNVERIFIED moved to quarantine 2026-06-15
 - failure-taxonomy seeds: BRE/Altro prompt-leak contamination, Sherwin-Williams/NSF ISO-21930
   empties, multi-product split failure (SCS-06707), UL extraction non-determinism
 

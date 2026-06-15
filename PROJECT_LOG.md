@@ -139,7 +139,7 @@ The 109 fields cover:
 ### System
 - **OS:** WSL Ubuntu on Windows 11
 - **Python:** 3.14.4 (system install)
-- **GPU:** TBC — Imperial computing resources for fine-tuning
+- **GPU:** Quadro RTX 4000 with Max-Q (8GB VRAM) — confirmed 2026-06-15; `torch.cuda.is_available()=True`, CUDA 13.1, Driver 591.86
 - **Project path:** `/home/edwardxu/MSc_Project/`
 
 ### Installed (as of 2026-06-14) ✅
@@ -167,6 +167,87 @@ Verify: `python3 scripts/check_install.py`
 
 ## 5. Progress Log
 
+### 2026-06-15 — Session 8: Preprocessing Complete; Baseline B Designed ✅
+
+**GPU confirmed:** Quadro RTX 4000 Max-Q (8GB VRAM), CUDA 13.1 — available locally in WSL. `torch.cuda.is_available()=True`. Phi-4-Mini 4-bit (~2.5GB) fits comfortably. Imperial node still needed for QLoRA fine-tuning (larger batch sizes).
+
+**Docling preprocessing pipeline — full run complete** (17:13–17:28, ~15 min):
+
+| Result | Count | Notes |
+|---|---|---|
+| OK | 40 | All with extractable text and table markdown |
+| FAIL (timeout) | 2 | `000623.pdf` (122p, 124.1s), `SCS-EPD-06707.pdf` (72p, 123.8s) — expected |
+| Skipped (sidecar exists) | 1 | `EPD-IES-0003985002.pdf` — from previous run |
+
+Notable outputs: `255.pdf` (54s, 41 tables, 237k chars), `SCS-EPD-10447.pdf` (51s, 37 tables, 181k chars), `EPD-P 05.11.2025.pdf` (39s, 51 tables, 88k chars) — largest documents in corpus.
+
+**Usable records for Baseline C/B: 14 of 18 clean gold records**
+
+| Status | Count | Detail |
+|---|---|---|
+| Sidecar OK | 14 | All `success=True` |
+| PDF missing from corpus | 4 | `1.1.00527.2024.pdf`, `1.1.00639.2024.pdf`, `4789796942.142.1.pdf`, `4789796942.144.1.pdf` — these 4 PDFs are not in `EPDs/` folder; gold records exist but source PDFs were never provided |
+
+The 4 missing PDFs need to be obtained from Firstplanit before all 18 records can be evaluated. Baseline C and B will run on the 14 available records in the interim.
+
+**Methodological concern identified — Docling as confound:**
+All frugal pipelines (C, S1/S2/S3) use Docling preprocessing; Baseline A (Gemini 2.5 Flash) is natively multimodal and bypasses Docling. Any accuracy gap between A and our pipelines conflates model capability with preprocessing quality. Decision: **Baseline B will run in two modes** — `text` (Docling-preprocessed, same path as frugal pipelines) and `native` (raw PDF to model multimodal API, same path as Baseline A). The delta isolates Docling's contribution.
+
+**NVIDIA blog (developer.nvidia.com/blog/approaches-to-pdf-data-extraction-for-information-retrieval/) assessed:**
+Not applicable as an additional benchmark — their task is information retrieval (Recall@5), not structured extraction. Their VLM failure modes (hallucinations, incomplete table rows, misread labels) are relevant to the failure-mode taxonomy chapter. No new experiments to add.
+
+**Baseline B design (implementation deferred to next session):**
+Script: `scripts/run_baseline_b.py`
+- `--model`: `claude-sonnet` | `gpt-4o` | `gemini-2.5-pro`
+- `--mode`: `text` | `native` | `both`
+- Native PDF delivery: Claude via `document` API content block; Gemini via Files API; GPT-4o via PyMuPDF page-image rendering (base64 vision input)
+- Cost tracking from API usage metadata; appends two Pareto rows per `--mode both` run
+- Reuses all existing eval harness functions unchanged
+- API keys needed: `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GOOGLE_API_KEY` (add to `.env`)
+- Full plan at `/home/edwardxu/.claude/plans/zesty-dancing-sutton.md`
+
+**Next session start:** Add API keys to `.env`, implement `scripts/run_baseline_b.py`, run smoke test on one record in both modes.
+
+---
+
+### 2026-06-15 — Session 7: Evaluation Harness ✅ COMPLETE
+
+**Files created:**
+- `src/evaluation/metrics.py` — `parse_numeric()`, `normalise_string()`, `match_numeric()` (±1% rtol + 1e-4 atol), `match_string()`, `match_list()` (set-based F1)
+- `src/evaluation/harness.py` — `FieldScore`, `RecordScore` dataclasses; `evaluate_record()`, `evaluate_dataset()` (matched by `file_name`)
+- `src/evaluation/report.py` — `print_summary()` (rich table), `to_csv()`, `to_summary_row()` (Pareto frontier row)
+- `requirements.txt` — added `deepdiff>=6.7.0`
+
+**Design decisions:**
+- All numerics parsed from strings; scientific notation (`"8.66E-02"`) and `"N/A"` handled
+- Disaggregated F1: overall / populated (gold != N/A) / N/A / metadata / LCA
+- LCA stage keys `D1`/`D2` skipped (Firstplanit-custom, always N/A)
+- `"Standard List"` and `"Tags List"` use set-based F1
+- Unit strings normalised via NFKD unicode (CO₂ vs CO2, m³ vs m3)
+- Schema validity requires all 12 LCA indicator keys; record 0 (EPD-IES) legitimately fails — missing some indicators in gold standard itself
+
+**Verification passed:**
+- Self-score: all 18 records F1=1.0 overall, populated, N/A, metadata, LCA
+- Empty pred: f1_overall=0.0, schema_valid=False
+- All-N/A pred: f1_na=1.0, f1_populated=0.0 (confirms N/A inflation protection)
+
+---
+
+### 2026-06-15 — Session 6: Gold Standard Trimmed to 18 Confident Records
+
+**Decision:** The 9 VERIFY-flagged records (orig indices 1, 19, 20, 26, 27, 31, 33, 39, 42) that required PDF hand-verification have been moved from the clean set to quarantine with `_quarantine_reason = "UNVERIFIED"`. Working set is now 18 records (clean) + 25 quarantine.
+
+**Rationale:** Rather than blocking pipeline development on manual verification, use only records we are confident about. The 9 unverified records are preserved in quarantine and can be promoted individually once verified — re-run `scripts/create_gold_standard.py` after adjusting index sets.
+
+**Files changed:**
+- `scripts/create_gold_standard.py` — removed `VERIFY_INDICES`, updated `CLEAN_INDICES` (27 → 18), added UNVERIFIED entries to `QUARANTINE_REASONS`, updated asserts
+- `data/gold_standard/epd_gold_clean.json` — regenerated (18 records, no `_verify` flags)
+- `data/gold_standard/epd_gold_quarantine.json` — regenerated (25 records; new UNVERIFIED category)
+- `data/gold_standard/gold_standard_manifest.csv` — regenerated (43 rows; 18 CLEAN, 25 QUARANTINE)
+- `CLAUDE.md`, `PROJECT_LOG.md`, `data/gold_standard/GROUND_TRUTH_HANDOFF.md`, `GROUND_TRUTH_HANDOFF.md` — updated throughout
+
+---
+
 ### 2026-06-14 — Session 1: Project Familiarisation & Setup
 
 **Done:**
@@ -185,7 +266,7 @@ Verify: `python3 scripts/check_install.py`
 ### 2026-06-14 — Session 5: Gold Standard Audit & Preprocessing Pipeline ✅ COMPLETE
 
 **What and why:**
-With the corpus audited and schema normalised, the next step was to determine which of the 43 normalised records are trustworthy enough to use as ground truth for evaluation and fine-tuning. This session ran a record-by-record audit of `epd_gold_normalised.json`, split it into a 27-record clean set and a 16-record quarantine set, and wrote the Docling preprocessing pipeline.
+With the corpus audited and schema normalised, the next step was to determine which of the 43 normalised records are trustworthy enough to use as ground truth for evaluation and fine-tuning. This session ran a record-by-record audit of `epd_gold_normalised.json`, split it into a 27-record clean set (later trimmed to 18 confident records — see Session 6) and a 16-record quarantine set, and wrote the Docling preprocessing pipeline.
 
 **Gold standard split:**
 
@@ -202,13 +283,13 @@ With the corpus audited and schema normalised, the next step was to determine wh
 3. **Multi-product split failure (SCS-EPD-06707)** — 4 extractions from 1 PDF; 2 clean (Knight Tile, Van Gogh), 2 quarantined as exact duplicates of Van Gogh — suggests non-determinism in the production pipeline's product-column detection
 4. **UL extraction non-determinism** — UL Interface records 23–25 are second passes of records 20–22; slight value divergences between runs suggest temperature > 0 or variable chunking in production
 
-**VERIFY-flagged records (9 — Edward's task):**
-Clean records at original indices 1, 19, 20, 26, 27, 31, 33, 39, 42 are flagged `"_verify": true` in `epd_gold_clean.json`. These need cross-checking against source PDFs before use in fine-tuning.
+**VERIFY-flagged records (9 — moved to quarantine in Session 6, 2026-06-15):**
+Records at original indices 1, 19, 20, 26, 27, 31, 33, 39, 42 were flagged for PDF cross-check. Decision: moved to quarantine (UNVERIFIED) rather than blocking pipeline development.
 
 **Output files created:**
 - `scripts/create_gold_standard.py` — reproducible split script; re-running regenerates all output files
-- `data/gold_standard/epd_gold_clean.json` — 27 clean records; working ground truth
-- `data/gold_standard/epd_gold_quarantine.json` — 16 quarantined records with `_quarantine_reason`
+- `data/gold_standard/epd_gold_clean.json` — 27 clean records at time of creation; trimmed to 18 in Session 6
+- `data/gold_standard/epd_gold_quarantine.json` — 16 quarantined records at time of creation; grown to 25 in Session 6
 - `data/gold_standard/gold_standard_manifest.csv` — 43-row audit manifest
 - `data/gold_standard/GROUND_TRUTH_HANDOFF.md` — canonical reference for future sessions
 - `src/preprocessing/docling_pipeline.py` — Docling PDF → text + tables; `do_ocr=False`, 120s timeout, resumable
@@ -323,13 +404,13 @@ All 22 Medium PDFs are native English; range 5–15 pages, 8–16 tables. Includ
 | Literature review | ✅ Complete | Written up in interim report Ch.3 |
 | **Corpus audit** | **✅ Complete** | `data/corpus_audit/audit.csv` — 43 PDFs, 0 scanned, 21 Hard / 22 Medium / 0 Simple |
 | **Schema normalisation** | **✅ Complete** | `epd_gold_normalised.json` — 43 records, loss-free key-renaming; 3 schema variants unified |
-| **Gold standard construction** | **✅ Complete** | 27 clean / 16 quarantined; 9 records VERIFY-flagged (Edward's task); see `GROUND_TRUTH_HANDOFF.md` |
+| **Gold standard construction** | **✅ Complete** | 18 clean / 25 quarantined (9 UNVERIFIED + 16 known-bad); see `GROUND_TRUTH_HANDOFF.md` |
 | Dev environment setup | ✅ Complete | `.venv` + 21 packages; vLLM deferred to GPU node |
-| **Preprocessing pipeline (Docling)** | **✅ Complete** | `src/preprocessing/docling_pipeline.py` — `do_ocr=False`, 120s timeout, resumable |
-| Evaluation harness | ⏳ Not started | Design to be confirmed with Edward before implementing |
+| **Preprocessing pipeline (Docling)** | **✅ Complete** | 40/42 PDFs OK; 2 timeout (000623, SCS-EPD-06707); 14/18 gold records runnable |
+| **Evaluation harness** | **✅ Complete** | `src/evaluation/` — per-field F1 disaggregated by category + populated/N/A; self-test passes |
 | Baseline A (Firstplanit / Gemini 2.5 Flash) | ⏳ Not started | Need to re-run on verified gold standard |
-| Baseline B (frontier cloud reference) | ⏳ Not started | — |
-| Baseline C (zero-shot local SLM) | ⏳ Not started | Requires local model setup (Phi-4-Mini) |
+| Baseline B (frontier cloud reference) | 🔄 Designed | `scripts/run_baseline_b.py` — text + native PDF modes; API keys needed; implement next session |
+| Baseline C (zero-shot local SLM) | 🔄 Ready to run | `scripts/run_baseline_c.py` written; GPU confirmed (RTX 4000); 14 records have sidecars |
 | S1 — Prompt adaptation | ⏳ Not started | — |
 | S2 — QLoRA fine-tuning (Phi-4-Mini) | ⏳ Not started | — |
 | S3 — Cascade implementation | ⏳ Not started | — |
@@ -347,14 +428,13 @@ All 22 Medium PDFs are native English; range 5–15 pages, 8–16 tables. Includ
 - [x] ~~Corpus audit script~~ — `scripts/corpus_audit.py` complete
 - [x] ~~Corpus audit results~~ — `data/corpus_audit/audit.csv` (43 PDFs, 16 fields each)
 - [x] ~~Resolve schema inconsistency~~ — `epd_gold_normalised.json` (43 records, canonical field names)
-- [x] ~~Gold standard construction~~ — 27 clean / 16 quarantined; `epd_gold_clean.json` is working ground truth
+- [x] ~~Gold standard construction~~ — 18 clean / 25 quarantined; `epd_gold_clean.json` is working ground truth
 - [x] ~~Clarify 13 unmatched PDFs~~ — Decision: ignore; treat `epd_extraction.json` as source
 - [x] ~~Docling preprocessing pipeline~~ — `src/preprocessing/docling_pipeline.py` written
-- [ ] **Hand-verify 9 VERIFY-flagged records** — Edward's task: orig indices 1, 19, 20, 26, 27, 31, 33, 39, 42
-
-### Short term (Week 3–4)
-- [ ] **Evaluation harness** — per-field F1 (exact-match categorical, tolerance-based numeric), disaggregated by field category AND by populated vs N/A; schema validity; unit-outlier check. *Confirm design with Edward first.*
-- [ ] **Baseline C** — zero-shot Phi-4-Mini on the 27-record clean working set (requires local model setup)
+### Short term (Week 3–4) — immediate next session
+- [x] ~~Evaluation harness~~ — `src/evaluation/` complete; self-test passes
+- [ ] **Baseline B** — implement `scripts/run_baseline_b.py`; add `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GOOGLE_API_KEY` to `.env`; run smoke test; full run on 14 records in text + native modes
+- [ ] **Baseline C** — run `scripts/run_baseline_c.py` on 14 records with GPU (RTX 4000, 4-bit Phi-4-Mini); obtain remaining 4 PDFs from Firstplanit
 
 ### Medium term (Weeks 5–9)
 - [ ] QLoRA fine-tuning of Phi-4-Mini on training split
